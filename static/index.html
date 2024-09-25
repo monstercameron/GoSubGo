@@ -1,49 +1,82 @@
-<!-- static/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>GoSubGo Todo List</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Optional: Your styles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Todo List</h1>
 
-    <!-- Todo Form -->
-    <form id="todo-form">
-        <input type="text" name="title" placeholder="Enter todo item" required>
-        <button type="submit">Add Todo</button>
-    </form>
+<body class="bg-gradient-to-r from-blue-500 to-purple-600 min-h-screen flex items-center justify-center px-4">
+    <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">My Todo List</h1>
 
-    <!-- Todo List -->
-    <div id="todo-list"></div>
+        <form id="todo-form" class="mb-6">
+            <div class="flex items-center border-b-2 border-blue-500 py-2">
+                <input id="todo-input"
+                    class="appearance-none bg-transparent border-none w-full text-gray-700 mr-3 py-1 px-2 leading-tight focus:outline-none"
+                    type="text" placeholder="Add a new task..." aria-label="Add a new task">
+                <button id="add-todo"
+                    class="flex-shrink-0 bg-blue-500 hover:bg-blue-700 border-blue-500 hover:border-blue-700 text-sm border-4 text-white py-1 px-2 rounded"
+                    type="button">
+                    Add
+                </button>
+            </div>
+        </form>
 
-    <!-- Include the WASM and JavaScript glue code -->
-    <script src="main.js"></script>
+        <ul id="todo-list" class="space-y-3">
+            <li class="flex items-center bg-gray-100 p-3 rounded-lg shadow">
+                <input id="todo-1" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
+                <label for="todo-1" class="ml-3 block text-gray-900 flex-grow">
+                    Complete project proposal
+                </label>
+                <button class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </li>
+            <li class="flex items-center bg-gray-100 p-3 rounded-lg shadow">
+                <input id="todo-2" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600">
+                <label for="todo-2" class="ml-3 block text-gray-900 flex-grow">
+                    Buy groceries
+                </label>
+                <button class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </li>
+            <li class="flex items-center bg-gray-100 p-3 rounded-lg shadow">
+                <input id="todo-3" type="checkbox" class="form-checkbox h-5 w-5 text-blue-600" checked>
+                <label for="todo-3" class="ml-3 block text-gray-900 flex-grow line-through">
+                    Call mom
+                </label>
+                <button class="text-red-500 hover:text-red-700">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </li>
+        </ul>
+
+        <div class="mt-6 text-center">
+            <p id="tasks-count" class="text-sm text-gray-600">3 tasks remaining</p>
+        </div>
+    </div>
+    <script src="./scripts/script.js"></script>
+    <script src="./scripts/wasm_exec.js"></script>\
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
     <script>
-        // Initialize the WASM module
-        const go = new Go();
-        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
-            go.run(result.instance);
-        });
-
-        // JavaScript code to handle form submission and pass events to Go's EventBus
-        document.getElementById('todo-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const title = event.target.elements['title'].value;
-            if (title.trim() === "") {
-                alert("Please enter a todo item.");
-                return;
-            }
-            // Send the event to Go
-            handleEvent(JSON.stringify({
-                eventType: 'submit',
-                elementID: 'todo-form',
-                params: { title: title }
-            }));
-            // Clear the input field
-            event.target.elements['title'].value = '';
-        });
+        // Initialize SQL.js
+        initSqlJs({ locateFile: file => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}` })
+            .then(SQL => {
+                // SQL.js is now available globally
+                window.SQL = SQL;
+                // Now you can load your WASM application
+                const go = new Go();
+                WebAssembly.instantiateStreaming(fetch("./bin/main.wasm"), go.importObject)
+                    .then((result) => {
+                        go.run(result.instance);
+                    });
+            });
     </script>
 </body>
+
 </html>

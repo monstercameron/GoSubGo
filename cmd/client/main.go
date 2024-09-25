@@ -5,24 +5,33 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
+
 	"github.com/monstercameron/GoSubGo/database"
 	"github.com/monstercameron/GoSubGo/events"
 	"github.com/monstercameron/GoSubGo/todolist"
 	"github.com/monstercameron/GoSubGo/utils"
-	"log"
 )
 
 func main() {
 	c := make(chan struct{}, 0)
 
-	// Initialize the in-memory SQLite database
+	// Initialize the in-memory SQL.js database
 	db, err := database.NewDatabase()
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer db.Close()
+
+	// Initialize the todos table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS todos (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT NOT NULL
+	)`)
+	if err != nil {
+		log.Fatalf("Failed to create todos table: %v", err)
+	}
 
 	// Initialize the EventBus
 	eventBus := events.NewEventBus()
@@ -31,9 +40,9 @@ func main() {
 	todolist.SubscribeAll(eventBus, db)
 
 	// Perform the initial page render
-	if err := InitialPageRender(db, "#root"); err != nil {
-		log.Fatalf("Failed to render page: %v", err)
-	}
+	// if err := InitialPageRender(db, "#root"); err != nil {
+	// 	log.Fatalf("Failed to render page: %v", err)
+	// }
 
 	// Start listening for JavaScript events
 	eventBus.Listen()
@@ -42,7 +51,7 @@ func main() {
 }
 
 // InitialPageRender performs the initial render using data from the database.
-func InitialPageRender(db *sql.DB, selector string) error {
+func InitialPageRender(db *database.DB, selector string) error {
 	todos, err := todolist.GetAllTodos(db)
 	if err != nil {
 		return fmt.Errorf("failed to get todos: %w", err)
