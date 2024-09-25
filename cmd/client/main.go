@@ -22,6 +22,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
+
+	// Initialize the todos table
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS todos (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		title TEXT NOT NULL,
+		completed INTEGER NOT NULL DEFAULT 0
+	)`)
+	
+	// close the database connection when the function returns
 	defer db.Close()
 
 	// Initialize the todos table
