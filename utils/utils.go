@@ -2,7 +2,6 @@
 package utils
 
 import (
-	"database/sql"
 	"fmt"
 	"syscall/js"
 )
