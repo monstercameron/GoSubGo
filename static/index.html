@@ -1,0 +1,49 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>GoSubGo Todo List</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional: Your styles -->
+</head>
+<body>
+    <h1>Todo List</h1>
+
+    <!-- Todo Form -->
+    <form id="todo-form">
+        <input type="text" name="title" placeholder="Enter todo item" required>
+        <button type="submit">Add Todo</button>
+    </form>
+
+    <!-- Todo List -->
+    <div id="todo-list"></div>
+
+    <!-- Include the WASM and JavaScript glue code -->
+    <script src="main.js"></script>
+    <script>
+        // Initialize the WASM module
+        const go = new Go();
+        WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+            go.run(result.instance);
+        });
+
+        // JavaScript code to handle form submission and pass events to Go's EventBus
+        document.getElementById('todo-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const title = event.target.elements['title'].value;
+            if (title.trim() === "") {
+                alert("Please enter a todo item.");
+                return;
+            }
+            // Send the event to Go
+            handleEvent(JSON.stringify({
+                eventType: 'submit',
+                elementID: 'todo-form',
+                params: { title: title }
+            }));
+            // Clear the input field
+            event.target.elements['title'].value = '';
+        });
+    </script>
+</body>
+</html>
